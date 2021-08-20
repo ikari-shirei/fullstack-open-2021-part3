@@ -1,10 +1,12 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 
 const app = express()
 
 app.use(express.json())
 app.use(morgan('tiny'))
+app.use(cors())
 
 let persons = [
   {
@@ -88,6 +90,8 @@ app.post('/api/persons', (request, response) => {
   }
 
   persons = persons.concat(newPerson)
+  console.log(body)
+  return response.status(200).json()
 })
 
 const PORT = 3001
