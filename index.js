@@ -8,6 +8,8 @@ app.use(express.json())
 app.use(morgan('tiny'))
 app.use(cors())
 
+app.set('Content-Security-Policy', "default-src 'none'")
+
 let persons = [
   {
     id: 1,
