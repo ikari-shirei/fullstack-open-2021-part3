@@ -13,29 +13,6 @@ app.use(cors())
 
 app.set('Content-Security-Policy', "default-src 'none'")
 
-let persons = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-]
-
 let personsLength = 0
 
 Person.countDocuments({}, function (err, count) {
@@ -78,6 +55,21 @@ app.delete('/api/persons/:id', (request, response) => {
   Person.findByIdAndRemove(request.params.id)
     .then((result) => {
       response.status(204).end()
+    })
+    .catch((error) => next(error))
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    .then((updatedNote) => {
+      response.json(updatedNote)
     })
     .catch((error) => next(error))
 })
