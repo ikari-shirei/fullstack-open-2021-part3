@@ -1,6 +1,8 @@
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+require('dotenv').config() // Before person
+const Person = require('./models/person')
 
 const app = express()
 
@@ -34,11 +36,26 @@ let persons = [
   },
 ]
 
-const personsLength = persons.length
+let personsLength = 0
+
+Person.countDocuments({}, function (err, count) {
+  return count
+})
+  .then((value) => {
+    personsLength = value
+    return value
+  })
+  .catch((err) => {
+    console.log(err)
+    return 'ERROR'
+  })
+
 const currentDate = new Date()
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then((result) => {
+    response.json(result)
+  })
 })
 
 app.get('/info', (request, response) => {
@@ -61,40 +78,44 @@ app.delete('/api/persons/:id', (request, response) => {
   response.status(204).end()
 })
 
-function generateId() {
-  const maxId = personsLength > 0 ? Math.max(...persons.map((p) => p.id)) : 0
-  return maxId + 1
-}
-
 app.post('/api/persons', (request, response) => {
   const body = request.body
 
-  const isNameExist = persons.find((person) => body.name === person.name)
-
-  if (!body.name) {
-    return response.status(400).json({
-      error: 'there must be a name',
-    })
-  } else if (!body.number) {
-    return response.status(400).json({
-      error: 'there must be number',
-    })
-  } else if (isNameExist) {
-    return response.status(400).json({
-      error: 'name must be unique',
-    })
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'content missing' })
   }
 
-  const newPerson = {
-    id: generateId(),
-    name: body.name,
-    number: body.number,
-    date: new Date(),
-  }
+  Person.find({})
+    .then((result) => {
+      return result
+    })
+    .then((result) => {
+      const isNameExist = result.find((person) => body.name === person.name)
 
-  persons = persons.concat(newPerson)
-  console.log(body)
-  return response.status(200).json()
+      if (!body.name) {
+        return response.status(400).json({
+          error: 'there must be a name',
+        })
+      } else if (!body.number) {
+        return response.status(400).json({
+          error: 'there must be number',
+        })
+      } else if (isNameExist) {
+        return response.status(400).json({
+          error: 'name must be unique',
+        })
+      } else {
+        const newPerson = new Person({
+          name: body.name,
+          number: body.number,
+          date: new Date(),
+        })
+
+        newPerson.save().then((savedNote) => {
+          response.json(savedNote)
+        })
+      }
+    })
 })
 
 const PORT = process.env.PORT || 3001
