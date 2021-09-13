@@ -78,23 +78,18 @@ app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   Person.find({}).then((result) => {
-    const isNameExist = result.find((person) => body.name === person.name)
+    const newPerson = new Person({
+      name: body.name,
+      number: body.number,
+      date: new Date(),
+    })
 
-    if (!body.name || !body.number) {
-      next({ name: 'ContentMissing' })
-    } else if (isNameExist) {
-      next({ name: 'AlreadyAdded' })
-    } else {
-      const newPerson = new Person({
-        name: body.name,
-        number: body.number,
-        date: new Date(),
-      })
-
-      newPerson.save().then((savedNote) => {
+    newPerson
+      .save()
+      .then((savedNote) => {
         response.json(savedNote)
       })
-    }
+      .catch((error) => next(error))
   })
 })
 
@@ -114,10 +109,12 @@ app.use(unknownEndpoint)
 const errorHandler = (error, request, response, next) => {
   if (error.name === 'CastError') {
     return response.status(400).send({ error: 'malformatted id' })
-  } else if (error.name === 'ContentMissing') {
-    return response.status(400).json({ error: 'content missing' })
-  } else if (error.name === 'AlreadyAdded') {
-    return response.status(400).json({ error: 'name is already in the list' })
+  } else if (error.name === 'MongoError') {
+    return response.status(400).json({ error: error.message })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  } else {
+    console.log(error.name)
   }
 
   next(error)
