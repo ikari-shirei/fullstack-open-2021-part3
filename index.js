@@ -11,6 +11,7 @@ app.use(express.json())
 app.use(morgan('tiny'))
 app.use(cors())
 
+// eslint-disable-next-line quotes
 app.set('Content-Security-Policy', "default-src 'none'")
 
 let personsLength = 0
@@ -51,9 +52,9 @@ app.get('/api/persons/:id', (request, response, next) => {
     .catch((error) => next(error))
 })
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end()
     })
     .catch((error) => next(error))
@@ -80,7 +81,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
-  Person.find({}).then((result) => {
+  Person.find({}).then(() => {
     const newPerson = new Person({
       name: body.name,
       number: body.number,
